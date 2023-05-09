@@ -38,6 +38,7 @@ class solver:
         self.peak_r = max_peak
         self.peak_eta = second_peak
 
+        self.mu_0 = mu_0
         # fitness landscape
         self.mu = np.ones(self.D) * mu_0
         self.mu[self.peak_r] *= self.r
@@ -114,7 +115,16 @@ class solver:
         return q
 
 
-    def system_equation(self, t, system):
+    def system_equation(self, t:float, system:np.ndarray):
+        """_summary_
+
+        Args:
+            t (float): array
+            system (np.ndarray): system array
+
+        Returns:
+            np.ndarray: system equation at time t
+        """
         dsystem_dt = np.zeros(self.D)
 
         mu_bar = np.dot(self.mu, system)
@@ -128,69 +138,91 @@ class solver:
         return dsystem_dt
 
     def solve(self, time_span, n_time):
+        """Solver for system equation
+
+        Args:
+            time_span (_type_): _description_
+            n_time (_type_): _description_
+
+        Returns:
+            _type_: _description_
+        """
         time = np.linspace(time_span[0], time_span[1], n_time)
 
         result = solve_ivp(fun=self.system_equation, t_span=time_span, y0=self.initial_conditions, t_eval=time)
 
         return result
 
-    
+    def mu_wide(self, radius:int):
+        """Function to implement wide mu region around eta peak
+
+        Args:
+            radius (int): radius of area
+        """
+        for i in range(self.D):
+            if self.Hamming_dinstance(self.peak_eta, i) <= radius:
+                self.mu[i] = self.eta * self.mu_0
+        
 
 
 
-N = 3
-d = 2 ** N
-in_con = np.ones(d) * 1 / d
+if __name__ == "main":
+    """
+    Just plotting some stuff to see whether it looks reasonable.... looks reasonable....
+    """
+    N = 3
+    d = 2 ** N
+    in_con = np.ones(d) * 1 / d
 
-tmax = 100
+    tmax = 100
 
-test = solver(N, in_con, 2, 1.9, 1e-2, True, 1, 5, 1)
-result = test.solve([0, tmax], 100)
+    test = solver(N, in_con, 2, 1.9, 1e-2, True, 1, 5, 1)
+    result = test.solve([0, tmax], 100)
 
-f = plt.subplots()
-plt.plot(result.t, result.y.T)
-plt.ylabel(r"$f$")
-plt.xlabel(r"$t$")
-plt.yscale("log")
-plt.legend(['%d' % i for i in np.arange(d)], shadow=True)
-plt.savefig("rn_1.pdf", dpi=500, bbox_inches="tight")
+    f = plt.subplots()
+    plt.plot(result.t, result.y.T)
+    plt.ylabel(r"$f$")
+    plt.xlabel(r"$t$")
+    plt.yscale("log")
+    plt.legend(['%d' % i for i in np.arange(d)], shadow=True)
+    plt.savefig("rn_1.pdf", dpi=500, bbox_inches="tight")
 
-print(test.q_matrix)
+    print(test.q_matrix)
 
-f2 = plt.subplots()
-plt.bar(np.arange(0, d, 1), result.y[:,-1])
-plt.xlabel("Sequence")
-plt.ylabel(r"$f_\mathrm{final}$")
-plt.savefig("rn_2.pdf", dpi=500, bbox_inches="tight")
+    f2 = plt.subplots()
+    plt.bar(np.arange(0, d, 1), result.y[:,-1])
+    plt.xlabel("Sequence")
+    plt.ylabel(r"$f_\mathrm{final}$")
+    plt.savefig("rn_2.pdf", dpi=500, bbox_inches="tight")
 
-f3 = plt.subplots()
-plt.bar(np.arange(0, d, 1), test.mu)
-plt.xlabel("Sequence")
-plt.ylabel(r"$\mu$")
-plt.savefig("rn_3.pdf", dpi=500, bbox_inches="tight")
+    f3 = plt.subplots()
+    plt.bar(np.arange(0, d, 1), test.mu)
+    plt.xlabel("Sequence")
+    plt.ylabel(r"$\mu$")
+    plt.savefig("rn_3.pdf", dpi=500, bbox_inches="tight")
 
-test2 = solver(N, in_con, 2, 1.9, 1e-1, False, 1, 5, 1)
-result2 = test.solve([0, tmax], 100)
+    test2 = solver(N, in_con, 2, 1.9, 1e-1, False, 1, 5, 1)
+    result2 = test.solve([0, tmax], 100)
 
-f = plt.subplots()
-plt.plot(result2.t, result2.y.T)
-plt.ylabel(r"$f$")
-plt.xlabel(r"$t$")
-plt.yscale("log")
-plt.legend(['%d' % i for i in np.arange(d)], shadow=True)
-plt.savefig("rn_4.pdf", dpi=500, bbox_inches="tight")
+    f = plt.subplots()
+    plt.plot(result2.t, result2.y.T)
+    plt.ylabel(r"$f$")
+    plt.xlabel(r"$t$")
+    plt.yscale("log")
+    plt.legend(['%d' % i for i in np.arange(d)], shadow=True)
+    plt.savefig("rn_4.pdf", dpi=500, bbox_inches="tight")
 
-print(test2.q_matrix)
+    print(test2.q_matrix)
 
-f2 = plt.subplots()
-plt.bar(np.arange(0, d, 1), result2.y[:,-1])
-plt.xlabel("Sequence")
-plt.ylabel(r"$f_\mathrm{final}$")
-plt.savefig("rn_5.pdf", dpi=500, bbox_inches="tight")
+    f2 = plt.subplots()
+    plt.bar(np.arange(0, d, 1), result2.y[:,-1])
+    plt.xlabel("Sequence")
+    plt.ylabel(r"$f_\mathrm{final}$")
+    plt.savefig("rn_5.pdf", dpi=500, bbox_inches="tight")
 
-f3 = plt.subplots()
-plt.bar(np.arange(0, d, 1), test2.mu)
-plt.xlabel("Sequence")
-plt.ylabel(r"$\mu$")
-plt.savefig("rn_6.pdf", dpi=500, bbox_inches="tight")
+    f3 = plt.subplots()
+    plt.bar(np.arange(0, d, 1), test2.mu)
+    plt.xlabel("Sequence")
+    plt.ylabel(r"$\mu$")
+    plt.savefig("rn_6.pdf", dpi=500, bbox_inches="tight")
 

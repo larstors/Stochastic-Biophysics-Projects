@@ -67,22 +67,26 @@ class solver:
         b = bin(b)[2:].zfill(self.N)
         h_ab = 0
         for i in range(self.N):
+            # bitwise difference makes Hamming distance (does not work for anything other than bit representation)
             h_ab += np.abs(int(a[i]) - int(b[i]))
         return h_ab
-    #@njit
+    
     def q_matrix_approximation(self):
         """q matrix for nearest neighbour mutations
 
         Returns:
             np.ndarray: q matrix in bit representation
         """
+        
         q = np.zeros((2 ** self.N, 2 ** self.N))
+        # off diagonals
         for i in range(2 ** self.N):
             for j in range(i+1, 2 ** self.N):
                 if self.Hamming_dinstance(i, j) == 1:
                     q[i,j] = self.u
                     q[j,i] = self.u
-            
+        
+        # diagonal terms
         for i in range(self.D):
             s = 0
             for j in range(self.D):
@@ -99,12 +103,13 @@ class solver:
             np.ndarray: q matrix in bit representation
         """
         q = np.zeros((2 ** self.N, 2 ** self.N))
+        # off diagonals
         for i in range(2 ** self.N):
             for j in range(i+1, 2 ** self.N):
                 h = self.Hamming_dinstance(i, j)
                 q[i,j] = self.u ** h * (1 - self.u) ** (self.N - h)
                 q[j,i] = q[i, j]
-
+        # diagonal terms
         for i in range(self.D):
             s = 0
             for j in range(self.D):
@@ -127,11 +132,13 @@ class solver:
         """
         dsystem_dt = np.zeros(self.D)
 
+        # sum of mu with respective f
         mu_bar = np.dot(self.mu, system)
 
         # loop over system
         for i in range(self.D):
             for j in range(self.D):
+                # mutations
                 dsystem_dt[i] += self.mu[j] * self.q_matrix[i, j] * system[j]
             dsystem_dt[i] -= mu_bar * system[i]
         

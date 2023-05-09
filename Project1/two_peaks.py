@@ -166,43 +166,44 @@ class solver:
 
 
 
-if __name__ == "main":
+if __name__ == "__main__":
     """
     Just plotting some stuff to see whether it looks reasonable.... looks reasonable....
     """
-    N = 3
+    N = 4
     d = 2 ** N
     in_con = np.ones(d) * 1 / d
 
     tmax = 100
 
-    test = solver(N, in_con, 2, 1.9, 1e-2, True, 1, 5, 1)
-    result = test.solve([0, tmax], 100)
+    # test = solver(N, in_con, 2, 1.9, 1e-2, True, 1, 5, 1)
+    # result = test.solve([0, tmax], 100)
 
-    f = plt.subplots()
-    plt.plot(result.t, result.y.T)
-    plt.ylabel(r"$f$")
-    plt.xlabel(r"$t$")
-    plt.yscale("log")
-    plt.legend(['%d' % i for i in np.arange(d)], shadow=True)
-    plt.savefig("rn_1.pdf", dpi=500, bbox_inches="tight")
+    # f = plt.subplots()
+    # plt.plot(result.t, result.y.T)
+    # plt.ylabel(r"$f$")
+    # plt.xlabel(r"$t$")
+    # plt.yscale("log")
+    # plt.legend(['%d' % i for i in np.arange(d)], shadow=True)
+    # plt.savefig("rn_1.pdf", dpi=500, bbox_inches="tight")
 
-    print(test.q_matrix)
+    # print(test.q_matrix)
 
-    f2 = plt.subplots()
-    plt.bar(np.arange(0, d, 1), result.y[:,-1])
-    plt.xlabel("Sequence")
-    plt.ylabel(r"$f_\mathrm{final}$")
-    plt.savefig("rn_2.pdf", dpi=500, bbox_inches="tight")
+    # f2 = plt.subplots()
+    # plt.bar(np.arange(0, d, 1), result.y[:,-1])
+    # plt.xlabel("Sequence")
+    # plt.ylabel(r"$f_\mathrm{final}$")
+    # plt.savefig("rn_2.pdf", dpi=500, bbox_inches="tight")
 
-    f3 = plt.subplots()
-    plt.bar(np.arange(0, d, 1), test.mu)
-    plt.xlabel("Sequence")
-    plt.ylabel(r"$\mu$")
-    plt.savefig("rn_3.pdf", dpi=500, bbox_inches="tight")
+    # f3 = plt.subplots()
+    # plt.bar(np.arange(0, d, 1), test.mu)
+    # plt.xlabel("Sequence")
+    # plt.ylabel(r"$\mu$")
+    # plt.savefig("rn_3.pdf", dpi=500, bbox_inches="tight")
 
-    test2 = solver(N, in_con, 2, 1.9, 1e-1, False, 1, 5, 1)
-    result2 = test.solve([0, tmax], 100)
+    test2 = solver(N, in_con, 2, 1.9, 1e-1, True, 1, 7, 1)
+    test2.mu_wide(1)
+    result2 = test2.solve([0, tmax], 100)
 
     f = plt.subplots()
     plt.plot(result2.t, result2.y.T)
@@ -211,8 +212,6 @@ if __name__ == "main":
     plt.yscale("log")
     plt.legend(['%d' % i for i in np.arange(d)], shadow=True)
     plt.savefig("rn_4.pdf", dpi=500, bbox_inches="tight")
-
-    print(test2.q_matrix)
 
     f2 = plt.subplots()
     plt.bar(np.arange(0, d, 1), result2.y[:,-1])
@@ -225,4 +224,4 @@ if __name__ == "main":
     plt.xlabel("Sequence")
     plt.ylabel(r"$\mu$")
     plt.savefig("rn_6.pdf", dpi=500, bbox_inches="tight")
-
+    plt.show()

@@ -166,9 +166,24 @@ class solver:
         Args:
             radius (int): radius of area
         """
+        self.omega = radius
+        Omega = []
         for i in range(self.D):
             if self.Hamming_dinstance(self.peak_eta, i) <= radius:
+                Omega.append(i)
                 self.mu[i] = self.eta * self.mu_0
+        self.Omega = np.array(Omega)
+
+
+    def order_parameter_F(self, f):
+        F = 0
+        for i in self.Omega:
+            F += f[i]
+        
+        return F / f[self.peak_r]
+    
+    def order_parameter_A(self, f):
+        return self.D * f[self.peak_r] / np.sum(f)
         
 
 

@@ -254,21 +254,6 @@ if __name__ == "__main__":
     plt.show()
 
 
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[32]:
-
-
 from matplotlib import animation
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
@@ -304,83 +289,6 @@ def animate(i):
 plt.title("Developement: ", color=("blue"))
 ani = FuncAnimation(fig, animate, interval=100,frames=100)
 ani.save('test3.gif', writer='Pillow')
-
-
-# In[1]:
-
-
-def base(a: int, von: int, zu: int):
-    zahl = 0
-    multiplikator = 1
-    while a > 0:
-        zahl += (a%zu)*multiplikator
-        a=a//zu
-        multiplikator*=von
-    print(zahl)
-
-
-# In[2]:
-
-
-base(10,10,4)
-
-
-# In[4]:
-
-
-base(22,4,10)
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
 
 
 

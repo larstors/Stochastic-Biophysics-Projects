@@ -9,17 +9,28 @@ from numba import njit, jit
 
 
 class solver:
-    def __init__(self, N: int, initial_conditions: np.ndarray, r: float, eta: float, u: float, approximate_mutation: bool, max_peak: int, second_peak: int, mu_0: float):
+    def __init__(
+        self,
+        N: int,
+        initial_conditions: np.ndarray,
+        r: float,
+        eta: float,
+        u: float,
+        approximate_mutation: bool,
+        max_peak: int,
+        second_peak: int,
+        mu_0: float,
+    ):
 
         # length of sequence
         self.N = N
         # dimension of space
-        self.D = 2 ** self.N
+        self.D = 2**self.N
 
         # check dimensionality
         if len(initial_conditions) != self.D:
-            raise TypeError('Number of initial conditions does not match dimension.')
-        
+            raise TypeError("Number of initial conditions does not match dimension.")
+
         # set initial conditions
         self.initial_conditions = initial_conditions
 
@@ -27,7 +38,7 @@ class solver:
         self.r = r
 
         if eta > r:
-            raise TypeError('Height of secondary peak greater than main peak.')
+            raise TypeError("Height of secondary peak greater than main peak.")
         else:
             self.eta = eta
 
@@ -50,8 +61,7 @@ class solver:
         else:
             self.q_matrix = self.q_matrix_full()
 
-
-    #@njit
+    # @njit
     def Hamming_dinstance(self, a: int, b: int):
         """Function to calculate the Hamming distance between two sequences using the bit representation formalism
 
@@ -70,57 +80,56 @@ class solver:
             # bitwise difference makes Hamming distance (does not work for anything other than bit representation)
             h_ab += np.abs(int(a[i]) - int(b[i]))
         return h_ab
-    
+
     def q_matrix_approximation(self):
         """q matrix for nearest neighbour mutations
 
         Returns:
             np.ndarray: q matrix in bit representation
         """
-        
-        q = np.zeros((2 ** self.N, 2 ** self.N))
+
+        q = np.zeros((2**self.N, 2**self.N))
         # off diagonals
-        for i in range(2 ** self.N):
-            for j in range(i+1, 2 ** self.N):
+        for i in range(2**self.N):
+            for j in range(i + 1, 2**self.N):
                 if self.Hamming_dinstance(i, j) == 1:
-                    q[i,j] = self.u
-                    q[j,i] = self.u
-        
+                    q[i, j] = self.u
+                    q[j, i] = self.u
+
         # diagonal terms
         for i in range(self.D):
             s = 0
             for j in range(self.D):
                 if j != i:
-                    s+=q[i, j]
+                    s += q[i, j]
             q[i, i] = 1 - s
         return q
-    
-    #@njit       
+
+    # @njit
     def q_matrix_full(self):
         """q matrix for full mutation scenario
 
         Returns:
             np.ndarray: q matrix in bit representation
         """
-        q = np.zeros((2 ** self.N, 2 ** self.N))
+        q = np.zeros((2**self.N, 2**self.N))
         # off diagonals
-        for i in range(2 ** self.N):
-            for j in range(i+1, 2 ** self.N):
+        for i in range(2**self.N):
+            for j in range(i + 1, 2**self.N):
                 h = self.Hamming_dinstance(i, j)
-                q[i,j] = self.u ** h * (1 - self.u) ** (self.N - h)
-                q[j,i] = q[i, j]
+                q[i, j] = self.u**h * (1 - self.u) ** (self.N - h)
+                q[j, i] = q[i, j]
         # diagonal terms
         for i in range(self.D):
             s = 0
             for j in range(self.D):
                 if j != i:
-                    s+=q[i, j]
+                    s += q[i, j]
             q[i, i] = 1 - s
 
         return q
 
-
-    def system_equation(self, t:float, system:np.ndarray):
+    def system_equation(self, t: float, system: np.ndarray):
         """_summary_
 
         Args:
@@ -141,7 +150,7 @@ class solver:
                 # mutations
                 dsystem_dt[i] += self.mu[j] * self.q_matrix[i, j] * system[j]
             dsystem_dt[i] -= mu_bar * system[i]
-        
+
         return dsystem_dt
 
     def solve(self, time_span, n_time):
@@ -156,11 +165,16 @@ class solver:
         """
         time = np.linspace(time_span[0], time_span[1], n_time)
 
-        result = solve_ivp(fun=self.system_equation, t_span=time_span, y0=self.initial_conditions, t_eval=time)
+        result = solve_ivp(
+            fun=self.system_equation,
+            t_span=time_span,
+            y0=self.initial_conditions,
+            t_eval=time,
+        )
 
         return result
 
-    def mu_wide(self, radius:int):
+    def mu_wide(self, radius: int):
         """Function to implement wide mu region around eta peak
 
         Args:
@@ -174,76 +188,65 @@ class solver:
                 self.mu[i] = self.eta * self.mu_0
         self.Omega = np.array(Omega)
 
-
     def order_parameter_F(self, f):
         F = 0
         for i in self.Omega:
             F += f[i]
-        
+
         return F / f[self.peak_r]
-    
+
     def order_parameter_A(self, f):
         return self.D * f[self.peak_r] / np.sum(f)
-        
-
 
 
 if __name__ == "__main__":
     """
     Just plotting some stuff to see whether it looks reasonable.... looks reasonable....
     """
-    N = 4
-    d = 2 ** N
+    N = 8
+    d = 2**N
     in_con = np.ones(d) * 1 / d
 
     tmax = 100
 
-    # test = solver(N, in_con, 2, 1.9, 1e-2, True, 1, 5, 1)
-    # result = test.solve([0, tmax], 100)
+    main_peak = 1
+    second_peak = d - 1
 
-    # f = plt.subplots()
-    # plt.plot(result.t, result.y.T)
-    # plt.ylabel(r"$f$")
-    # plt.xlabel(r"$t$")
-    # plt.yscale("log")
-    # plt.legend(['%d' % i for i in np.arange(d)], shadow=True)
-    # plt.savefig("rn_1.pdf", dpi=500, bbox_inches="tight")
+    test2 = solver(N, in_con, 2, 1.9, 1e-1, True, main_peak, second_peak, 1)
 
-    # print(test.q_matrix)
+    kappa = test2.Hamming_dinstance(main_peak, second_peak) - 1
 
-    # f2 = plt.subplots()
-    # plt.bar(np.arange(0, d, 1), result.y[:,-1])
-    # plt.xlabel("Sequence")
-    # plt.ylabel(r"$f_\mathrm{final}$")
-    # plt.savefig("rn_2.pdf", dpi=500, bbox_inches="tight")
+    omega = np.arange(0, kappa + 1)
 
-    # f3 = plt.subplots()
-    # plt.bar(np.arange(0, d, 1), test.mu)
-    # plt.xlabel("Sequence")
-    # plt.ylabel(r"$\mu$")
-    # plt.savefig("rn_3.pdf", dpi=500, bbox_inches="tight")
+    eta = np.linspace(1, 1.99, 20, endpoint=True)
 
-    test2 = solver(N, in_con, 2, 1.9, 1e-1, True, 1, 7, 1)
-    test2.mu_wide(1)
-    result2 = test2.solve([0, tmax], 100)
+    F = np.zeros((len(omega), len(eta)))
+    A = np.zeros((len(omega), len(eta)))
+    # inefficient way of doing this...
+    for i in range(len(omega)):
+        for j in range(len(eta)):
+            print("omega = %d\t eta = %f" % (omega[i], eta[j]))
+            test2.eta = eta[j]
+            test2.mu_wide(omega[i])
+            result2 = test2.solve([0, tmax], 100)
+            F[i, j] = test2.order_parameter_F(result2.y[:, -1])
+            A[i, j] = test2.order_parameter_A(result2.y[:, -1])
 
-    f = plt.subplots()
-    plt.plot(result2.t, result2.y.T)
-    plt.ylabel(r"$f$")
-    plt.xlabel(r"$t$")
-    plt.yscale("log")
-    plt.legend(['%d' % i for i in np.arange(d)], shadow=True)
-    plt.savefig("rn_4.pdf", dpi=500, bbox_inches="tight")
+    y, x = np.meshgrid(omega + 0.5 * np.ones_like(omega), eta)
 
-    f2 = plt.subplots()
-    plt.bar(np.arange(0, d, 1), result2.y[:,-1])
-    plt.xlabel("Sequence")
-    plt.ylabel(r"$f_\mathrm{final}$")
-    plt.savefig("rn_5.pdf", dpi=500, bbox_inches="tight")
+    fig, ax = plt.subplots(nrows=1, ncols=2, sharex=True, sharey=True)
 
-    f3 = plt.subplots()
-    plt.bar(np.arange(0, d, 1), test2.mu)
-    plt.xlabel("Sequence")
-    plt.ylabel(r"$\mu$")
-    plt.savefig("rn_6.pdf", dpi=500, bbox_inches="tight")
-    plt.show()
+    c1 = ax[0].pcolormesh(x, y, F.T)
+    c2 = ax[1].pcolormesh(x, y, A.T)
+
+    fig.colorbar(c2, ax=ax)
+
+    ax[0].set_title(r"$F$")
+    ax[1].set_title(r"$A$")
+    ax[0].set_xlabel(r"$\eta$")
+    ax[1].set_xlabel(r"$\eta$")
+    ax[0].set_ylabel(r"$\omega$")
+
+    print(F, A)
+
+    plt.savefig("heatmap.pdf", dpi=500, bbox_inches="tight")

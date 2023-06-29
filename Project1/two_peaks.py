@@ -6,7 +6,7 @@ import ctypes
 import matplotlib.pyplot as plt
 import numpy.random as rn
 from numba import njit, jit
-
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 class solver:
     def __init__(
@@ -207,7 +207,7 @@ if __name__ == "__main__":
     d = 2**N
     in_con = np.ones(d) * 1 / d
 
-    tmax = 100
+    tmax = 50
 
     main_peak = 1
     second_peak = d - 1
@@ -234,19 +234,22 @@ if __name__ == "__main__":
 
     y, x = np.meshgrid(omega + 0.5 * np.ones_like(omega), eta)
 
-    fig, ax = plt.subplots(nrows=1, ncols=2, sharex=True, sharey=True)
+    fig, ax = plt.subplots(nrows=1, ncols=2, sharex=True, sharey=True, figsize=(10, 5))
 
     c1 = ax[0].pcolormesh(x, y, F.T)
+    divider = make_axes_locatable(ax[0])
+    cax = divider.append_axes('right', size='5%', pad=0.05)
+    fig.colorbar(c1, cax=cax)
     c2 = ax[1].pcolormesh(x, y, A.T)
-
-    fig.colorbar(c2, ax=ax)
+    divider = make_axes_locatable(ax[1])
+    cax = divider.append_axes('right', size='5%', pad=0.05)
+    fig.colorbar(c2, cax=cax)
+    
 
     ax[0].set_title(r"$F$")
     ax[1].set_title(r"$A$")
     ax[0].set_xlabel(r"$\eta$")
     ax[1].set_xlabel(r"$\eta$")
     ax[0].set_ylabel(r"$\omega$")
-
-    print(F, A)
 
     plt.savefig("heatmap.pdf", dpi=500, bbox_inches="tight")

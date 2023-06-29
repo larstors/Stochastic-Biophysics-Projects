@@ -33,7 +33,14 @@ def connection(seq, pos):
 
     return None
 
-
+def borders(data):
+    data2=np.array(data)
+    new=[]
+    for i in range(len(data2[0,:])):
+        new2=data2[:,i].tolist()
+        new=new+new2
+    new=np.array(new)
+    return[min(new[:,0])-1,max(new[:,0])+1,min(new[:,1])-1,max(new[:,1])+1]
 
 def Plotter(seq,pos,name): #plots the protein structure in 2D
     L=len(seq)
@@ -55,7 +62,7 @@ def Plotter(seq,pos,name): #plots the protein structure in 2D
         if i<L-1:
             plt.plot([pos[i][0],pos[i+1][0]],[pos[i][1],pos[i+1][1]], color='blue', alpha=1)
     connection(seq, pos)
-    plt.axis([-1, 9, -5, 5])
+    plt.axis(borders(data))
     plt.grid()
     plt.legend(loc = "upper left")
     plt.savefig(name+'.png')

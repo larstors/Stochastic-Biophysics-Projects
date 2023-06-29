@@ -4,7 +4,7 @@ import os
 import moviepy.video.io.ImageSequenceClip
 
 image_folder='images'
-fps=1
+fps=10
 
 image_files = ['images/test'+str(i)+'.png' for i in range(1000)]
 clip = moviepy.video.io.ImageSequenceClip.ImageSequenceClip(image_files, fps=fps)
